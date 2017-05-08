@@ -7,82 +7,50 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using System.Xml;
-
+using TaxiRequest.Models;
 namespace TaxiRequest.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index(string Name,string Phone)
+        public ActionResult Index(string Name, string Phone,string latitude,string longitude)
         {
             if (Name != null && Phone != null)
-              SetData(Name, Phone);
-         
-            return View();
+            {
+                Passanger passanger = new Passanger();
+                passanger.Name = Name;
+                passanger.Phone = Phone;
+                passanger.Latitude = decimal.Parse(latitude);
+                passanger.longitude =decimal.Parse(longitude);
+                SetData(passanger);
+            }
+               
+
+            return View(); 
         }
-     
-        private bool SetData(string name,string phone)
+
+        private bool SetData(Passanger passanger)
         {
-            string IP = "";
+          
 
-            string strHostName = "";
-            strHostName = System.Net.Dns.GetHostName();
-            string Country = null;
-
-            IPHostEntry ipEntry = System.Net.Dns.GetHostEntry(strHostName);
-
-            IPAddress[] addr = ipEntry.AddressList;
-
-            IP = addr[1].ToString();
-
-            //Initializing a new xml document object to begin reading the xml file returned
-            XmlDocument doc = new XmlDocument();
-            doc.Load("http://www.freegeoip.net/xml");
-            XmlNodeList nodeLstCity = doc.GetElementsByTagName("City");
-            IP = "" + nodeLstCity[0].InnerText + IP;
-            Country = doc.InnerText.ToString();
-
-            using (SqlConnection conn = new SqlConnection())
+                using (SqlConnection conn = new SqlConnection())
             {
                 conn.ConnectionString = @"Data Source=localhost; Initial Catalog=taxiData; Integrated Security=True";
                 conn.Open();
-                string cheqForClient=$"Select * from Client where 'Phone' = '{phone}'";
-
-
-                using (SqlCommand Cheqcommand = new SqlCommand(cheqForClient))
-                {
-                    int i = 0;
-                    Cheqcommand.Connection = conn;
-                    SqlDataReader reader= Cheqcommand.ExecuteReader();
-                    while(reader.Read())
-                    {
-                        i++;
-                    }
-                    if (i<= 0)
-                    {
-                        string AddNewClient = $"Insert into Client Values('{IP}','{Country}','{name}','{phone}')";
-                        using (SqlCommand AddClientcommand = new SqlCommand(AddNewClient))
+              
+                        string AddNewOrder = $"Insert into Client Values('{passanger.Name}','{passanger.Phone}','{passanger.Latitude}','{passanger.longitude}')";
+                        using (SqlCommand AddClientcommand = new SqlCommand(AddNewOrder))
                         {
                             AddClientcommand.Connection = conn;
-                            AddClientcommand.ExecuteNonQuery();
-                        }
-                    }
-                    string AddOrder = $"Insert into OrderTemp Values($'{IP}','{Country}','{name}','{phone}')";
-                    using (SqlCommand AddClientcommand = new SqlCommand(AddOrder))
+                    if (AddClientcommand.ExecuteNonQuery() > 0)
                     {
-                        AddClientcommand.Connection = conn;
-                        AddClientcommand.ExecuteNonQuery();
-
                         return true;
                     }
+                    else return false;
+                        }
+                     
                 }
-                
-                
-                    
-
-
-
-            }
-     
+            
+            
         }
 
         public ActionResult About()
@@ -99,4 +67,5 @@ namespace TaxiRequest.Controllers
             return View();
         }
     }
+       
 }
