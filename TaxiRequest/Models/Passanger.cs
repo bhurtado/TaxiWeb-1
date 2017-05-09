@@ -11,5 +11,6 @@ namespace TaxiRequest.Models
         public string Phone { get; set; }
         public decimal Latitude { get; set; }
         public decimal longitude { get; set; }
+        public int OrderStatusId { get; set; }
     }
 }

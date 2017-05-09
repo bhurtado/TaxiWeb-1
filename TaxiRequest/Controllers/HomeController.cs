@@ -21,7 +21,11 @@ namespace TaxiRequest.Controllers
                 passanger.Phone = Phone;
                 passanger.Latitude = decimal.Parse(latitude);
                 passanger.longitude =decimal.Parse(longitude);
-                SetData(passanger);
+                passanger.OrderStatusId = (int)OrderStatus.New;
+                if(SetData(passanger))
+                {
+                    return View("OrderPage");
+                }
             }
                
 
@@ -37,13 +41,14 @@ namespace TaxiRequest.Controllers
                 conn.ConnectionString = @"Data Source=localhost; Initial Catalog=taxiData; Integrated Security=True";
                 conn.Open();
               
-                        string AddNewOrder = $"Insert into Client Values('{passanger.Name}','{passanger.Phone}','{passanger.Latitude}','{passanger.longitude}')";
+                        string AddNewOrder = $"Insert into Orders Values({passanger.Latitude},{passanger.longitude},'{passanger.Name}','{passanger.Phone}',{passanger.OrderStatusId},'{DateTime.Now}')";
                         using (SqlCommand AddClientcommand = new SqlCommand(AddNewOrder))
                         {
                             AddClientcommand.Connection = conn;
                     if (AddClientcommand.ExecuteNonQuery() > 0)
                     {
                         return true;
+                   
                     }
                     else return false;
                         }
